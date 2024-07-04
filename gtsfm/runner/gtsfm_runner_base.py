@@ -48,6 +48,10 @@ class GtsfmRunnerBase:
         self.parsed_args: argparse.Namespace = argparser.parse_args(args=override_args)
         if self.parsed_args.dask_tmpdir:
             dask.config.set({"temporary_directory": DEFAULT_OUTPUT_ROOT / self.parsed_args.dask_tmpdir})
+        if not self.parsed_args.output_root and self.parsed_args.dataset_root:
+            self.parsed_args.output_root = os.path.join(self.parsed_args.dataset_root, "gtsfm")
+            os.makedirs(self.parsed_args.output_root, exist_ok=True)
+            print(f"set output_root: {self.parsed_args.output_root}")
 
         self.loader: LoaderBase = self.construct_loader()
         self.scene_optimizer: SceneOptimizer = self.construct_scene_optimizer()
@@ -98,7 +102,7 @@ class GtsfmRunnerBase:
         parser.add_argument(
             "--max_resolution",
             type=int,
-            default=760,
+            default=1200,
             help="integer representing maximum length of image's short side"
             " e.g. for 1080p (1920 x 1080), max_resolution would be 1080",
         )
@@ -121,7 +125,6 @@ class GtsfmRunnerBase:
         parser.add_argument(
             "--output_root",
             type=str,
-            default=DEFAULT_OUTPUT_ROOT,
             help="Root directory. Results, plots and metrics will be stored in subdirectories,"
             " e.g. {output_root}/results",
         )

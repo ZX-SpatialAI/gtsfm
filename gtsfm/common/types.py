@@ -4,10 +4,21 @@ Authors: Ayush Baid
 """
 from typing import Union
 
-from gtsam import Cal3Bundler, Cal3Fisheye, PinholeCameraCal3Bundler, PinholeCameraCal3Fisheye
+from gtsam import (
+    Cal3_S2,
+    Cal3Bundler,
+    Cal3Fisheye,
+    PinholeCameraCal3_S2,
+    PinholeCameraCal3Bundler,
+    PinholeCameraCal3Fisheye,
+)
 
-CALIBRATION_TYPE = Union[Cal3Bundler, Cal3Fisheye]
-CAMERA_TYPE = Union[PinholeCameraCal3Bundler, PinholeCameraCal3Fisheye]
+CALIBRATION_TYPE = Union[Cal3Bundler, Cal3Fisheye, Cal3_S2]
+CAMERA_TYPE = Union[
+    PinholeCameraCal3Bundler,
+    PinholeCameraCal3Fisheye,
+    PinholeCameraCal3_S2,
+]
 
 
 def get_camera_class_for_calibration(calibration: CALIBRATION_TYPE):
@@ -21,5 +32,9 @@ def get_camera_class_for_calibration(calibration: CALIBRATION_TYPE):
     """
     if isinstance(calibration, Cal3Bundler):
         return PinholeCameraCal3Bundler
-    else:
+    if isinstance(calibration, Cal3_S2):
+        return PinholeCameraCal3_S2
+    if isinstance(calibration, Cal3Fisheye):
         return PinholeCameraCal3Fisheye
+
+    raise Exception("Unspported calibration typ")

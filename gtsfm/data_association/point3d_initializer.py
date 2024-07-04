@@ -371,7 +371,7 @@ class Point3dInitializer:
                 track_cameras.append(self.track_camera_dict.get(i))
                 track_measurements.append(uv)
             else:
-                logger.warning("Unestimated cameras found at index %d. Skipping them.", i)
+                logger.debug("Unestimated cameras found at index %d. Skipping them.", i)
 
         # Triangulation is underconstrained with <2 measurements.
         if len(track_cameras) < 2:
