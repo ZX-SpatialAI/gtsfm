@@ -1,8 +1,10 @@
 import os
+from typing import List
 
 import numpy as np
 import torch
 import torchvision.transforms as T
+from PIL import Image as PilImage
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
@@ -16,11 +18,12 @@ WEIGHTS_DIR = '/root/autodl-tmp/weights'
 class MonoDataset(Dataset):
 
     def __init__(self, images, input_transform=None):
+        super().__init__()
         self.input_transform = input_transform
         self.images = images
 
     def __getitem__(self, index):
-        img = Image.open(self.images[index])
+        img = PilImage.open(self.images[index])
         if self.input_transform:
             img = self.input_transform(img)
 
@@ -43,8 +46,9 @@ def input_transform(image_size=None):
         return T.Compose([T.ToTensor(), T.Normalize(mean=MEAN, std=STD)])
 
 
-@torch.no_grad
+# @torch.no_grad
 def load_dino_salad():
+    print(f'Try to load weights from {WEIGHTS_DIR}')
     dinov2_ckpt_path = os.path.join(WEIGHTS_DIR, 'dinov2_vitb14_pretrain.pth')
     dino_salad_ckpt_path = os.path.join(WEIGHTS_DIR, 'dino_salad.ckpt')
     model = DinoSalad(dinov2_ckpt_path)
@@ -63,16 +67,16 @@ class DinoSaladGlobalDescriptor(GlobalDescriptorBase):
         self.batch_process = True
         self._model = load_dino_salad()
         self.image_transform = input_transform((1288, 728))
+        print('DinoSalad initialize')
 
-    @torch.no_grad
     def describe(self, image: Image) -> np.ndarray:
         descriptor = self._model(
             torch.from_numpy(self.image_transfor(image.value_array)))
 
         return descriptor.detach().cpu().numpy()
 
-    @torch.no_grad
-    def describe(self, image_files) -> np.ndarray:
+    def describe(self, image_files: List[str]) -> np.ndarray:
+        print('Try to get descriptors by dino_salad')
         dataset = MonoDataset(image_files, self.image_transform)
         dataloader = DataLoader(dataset,
                                 num_workers=4,
@@ -83,11 +87,13 @@ class DinoSaladGlobalDescriptor(GlobalDescriptorBase):
 
         descriptors = []
         device = 'cuda'
-        with torch.autocast(device_type=device, dtype=torch.float16):
-            for (imgs, _) in tqdm(dataloader):
-                output = self.model(imgs.to(device)).cpu()
-                descriptors.append(output)
+        with torch.no_grad():
+            with torch.autocast(device_type=device, dtype=torch.float16):
+                for (imgs, _) in tqdm(dataloader):
+                    output = self._model(imgs.to(device)).cpu()
+                    descriptors.append(output)
 
         descriptors = torch.cat(descriptors)
+        print(f'descriptors by salad: {descriptors.size}')
 
         return descriptors.detach().cpu().numpy()

@@ -3,6 +3,7 @@
 Authors: Ayush Baid
 """
 
+import os
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -35,7 +36,8 @@ class ImagePairsGenerator:
             client: Client,
             images: List[Future],
             image_fnames: List[str],
-            plots_output_dir: Optional[Path] = None) -> List[Tuple[int, int]]:
+            plots_output_dir: Optional[Path] = None,
+            dataset_root: str = None) -> List[Tuple[int, int]]:
 
         def apply_global_descriptor(global_descriptor: GlobalDescriptorBase,
                                     image: Image) -> np.ndarray:
@@ -44,9 +46,14 @@ class ImagePairsGenerator:
         descriptors: Optional[List[np.ndarray]] = None
         if self._global_descriptor is not None:
             if self._global_descriptor.batch_process:
+                full_image_fnames = [
+                    os.path.join(dataset_root, 'images', i)
+                    for i in image_fnames
+                ]
                 descriptors = list(
-                    self._global_descriptor.describe(image_fnames))
+                    self._global_descriptor.describe(full_image_fnames))
             else:
+                print('get image descriptor one by one')
                 global_descriptor_future = client.scatter(
                     self._global_descriptor, broadcast=False)
 

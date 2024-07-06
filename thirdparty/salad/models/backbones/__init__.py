@@ -1,2 +1,2 @@
+from .dinov2_helper import DINOv2
 from .resnet import ResNet
-from .dinov2 import DINOv2

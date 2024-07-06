@@ -25,6 +25,7 @@ class DinoSaladRetriever(RetrieverBase):
         self._num_matched = num_matched
         self._blocksize = blocksize
         self._min_score = min_score
+        print('DinoSaladRetriever initialized')
 
     def __repr__(self) -> str:
         return f"""
@@ -40,6 +41,7 @@ class DinoSaladRetriever(RetrieverBase):
         image_fnames: List[str],
         plots_output_dir: Optional[Path] = None,
     ) -> List[Tuple[int, int]]:
+        print(f'Get image pairs by dino_salad')
         if global_descriptors is None:
             raise ValueError("Global descriptors need to be provided")
         score_matrix = self.compute_similarity_matrix(global_descriptors)

@@ -348,8 +348,9 @@ class GtsfmRunnerBase:
                 images=self.loader.get_all_images_as_futures(client),
                 image_fnames=self.loader.image_filenames(),
                 plots_output_dir=self.scene_optimizer._plot_base_path,
+                dataset_root=self.parsed_args.dataset_root,
             )
-        print(f'Image retrieval finished')
+        print(f'Image retrieval finished:\n{image_pair_indices}')
         return
 
         retriever_metrics = self.scene_optimizer.image_pairs_generator._retriever.evaluate(

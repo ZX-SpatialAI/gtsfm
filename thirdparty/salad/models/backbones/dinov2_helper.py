@@ -4,11 +4,30 @@ import torch
 import torch.nn as nn
 
 DINOV2_ARCHS = {
-    'dinov2_vits14': 384,
+    # 'dinov2_vits14': 384,
     'dinov2_vitb14': 768,
-    'dinov2_vitl14': 1024,
-    'dinov2_vitg14': 1536,
+    # 'dinov2_vitl14': 1024,
+    # 'dinov2_vitg14': 1536,
 }
+
+
+def _make_dinov2_model():
+    from .dinov2.models import vision_transformer as vits
+
+    arch_name = 'vit_base'
+    vit_kwargs = dict(
+        img_size=518,
+        patch_size=14,
+        init_values=1.0,
+        ffn_layer='mlp',
+        block_chunks=0,
+        num_register_tokens=0,
+        interpolate_antialias=False,
+        interpolate_offset=0.1,
+    )
+    model = vits.__dict__[arch_name](**vit_kwargs)
+
+    return model
 
 
 class DINOv2(nn.Module):
@@ -34,15 +53,9 @@ class DINOv2(nn.Module):
         assert model_name in DINOV2_ARCHS.keys(
         ), f'Unknown model name {model_name}'
         if (dino_v2_weights is not None and os.path.exists(dino_v2_weights)):
-            self.model = torch.hub.load('facebookresearch/dinov2',
-                                        model_name,
-                                        pretrained=False)
-            print(f'start load weights from {dino_v2_weights}')
+            self.model = _make_dinov2_model()
             self.model.load_state_dict(torch.load(dino_v2_weights))
-            print(f'Load weights finished')
         else:
-            # Load weights from torch hub
-            print(f'Load weights form torch hub')
             self.model = torch.hub.load('facebookresearch/dinov2',
                                         model_name,
                                         pretrained=True)
