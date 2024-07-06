@@ -16,6 +16,9 @@ class GlobalDescriptorBase:
     Global image descriptors assign a vector for each input image.
     """
 
+    def __init__(self) -> None:
+        self.batch_process = False
+
     @abc.abstractmethod
     def describe(self, image: Image) -> np.ndarray:
         """Compute the global descriptor for a single image query.

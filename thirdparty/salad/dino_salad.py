@@ -1,5 +1,6 @@
 import torch.nn as nn
-from models import aggregators, backbones
+
+from .models import aggregators, backbones
 
 
 class DinoSalad(nn.Module):

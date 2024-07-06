@@ -43,25 +43,26 @@ def input_transform(image_size=None):
         return T.Compose([T.ToTensor(), T.Normalize(mean=MEAN, std=STD)])
 
 
+@torch.no_grad
+def load_dino_salad():
+    dinov2_ckpt_path = os.path.join(WEIGHTS_DIR, 'dinov2_vitb14_pretrain.pth')
+    dino_salad_ckpt_path = os.path.join(WEIGHTS_DIR, 'dino_salad.ckpt')
+    model = DinoSalad(dinov2_ckpt_path)
+    model.load_state_dict(torch.load(dino_salad_ckpt_path))
+    model = model.eval()
+    model = model.to('cuda')
+
+    return model
+
+
 class DinoSaladGlobalDescriptor(GlobalDescriptorBase):
     """DinoSalad global descriptor"""
 
-    def __init__(self, image_size=(1288, 728)) -> None:
-        """ """
-        self._model = self._load_model()
-        self.image_transform = input_transform(image_size)
-
-    @torch.no_grad
-    def _load_model(self):
-        dinov2_ckpt_path = os.path.join(WEIGHTS_DIR,
-                                        'dinov2_vitb14_pretrain.pth')
-        dino_salad_ckpt_path = os.path.join(WEIGHTS_DIR, 'dino_salad.ckpt')
-        model = DinoSalad(dinov2_ckpt_path)
-        model.load_state_dict(torch.load(dino_salad_ckpt_path))
-        model = model.eval()
-        model = model.to('cuda')
-
-        return model
+    def __init__(self) -> None:
+        super().__init__()
+        self.batch_process = True
+        self._model = load_dino_salad()
+        self.image_transform = input_transform((1288, 728))
 
     @torch.no_grad
     def describe(self, image: Image) -> np.ndarray:

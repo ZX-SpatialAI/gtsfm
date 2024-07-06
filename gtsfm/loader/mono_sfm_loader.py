@@ -3,15 +3,15 @@
 Authors: John Lambert
 """
 
+import json
 import os
 from pathlib import Path
 from typing import List, Optional
-import json
 
+import cv2
 import numpy as np
 import scipy.io
-from gtsam import Cal3_S2, Pose3, SfmTrack
-import cv2
+from gtsam import Cal3Bundler, Pose3, SfmTrack
 from tqdm import tqdm
 
 import gtsfm.utils.io as io_utils
@@ -59,11 +59,14 @@ class MonoSFMLoader(LoaderBase):
         if self.load_gt_intrinsics():
             self._use_gt_intrinsics = True
 
-        self._image_paths = io_utils.get_sorted_image_names_in_dir(self._images_dir)
+        self._image_paths = io_utils.get_sorted_image_names_in_dir(
+            self._images_dir)
         self._num_imgs = len(self._image_paths)
 
         if self._num_imgs == 0:
-            raise RuntimeError(f"Loader could not find any images with the specified file extension in {folder}")
+            raise RuntimeError(
+                f"Loader could not find any images with the specified file extension in {folder}"
+            )
 
     def get_gt_tracks_2d(self) -> List[SfmTrack2d]:
         """Retrieves 2d ground-truth point tracks."""
@@ -93,15 +96,15 @@ class MonoSFMLoader(LoaderBase):
 
                 # u_uncalib.points{i} contains homogeneous image keypoints w/ shape (3, num_visible_points).
                 # Transpose to (num_visible_points, 3)
-                keypoint_coords = data['u_uncalib'][0,0][1][i][0].T
+                keypoint_coords = data['u_uncalib'][0, 0][1][i][0].T
 
                 # u_uncalib.index{i} contains the indices of the 3D points corresponding to u_uncalib.points{i}.
                 # shape: (1, num_visible_points)
-                if j not in data['u_uncalib'][0,0][2][i][0]:
+                if j not in data['u_uncalib'][0, 0][2][i][0]:
                     continue
 
-                k = np.argwhere(data['u_uncalib'][0,0][2][i][0][0] == j)[0]
-                uv = np.squeeze(keypoint_coords[k,:2])
+                k = np.argwhere(data['u_uncalib'][0, 0][2][i][0][0] == j)[0]
+                uv = np.squeeze(keypoint_coords[k, :2])
                 track_3d.addMeasurement(i, uv)
 
             if track_3d.numberMeasurements() == 0:
@@ -110,7 +113,6 @@ class MonoSFMLoader(LoaderBase):
             tracks.append(track_3d)
 
         return tracks
-
 
     def image_filenames(self) -> List[str]:
         """Return the file names corresponding to each image index."""
@@ -142,7 +144,8 @@ class MonoSFMLoader(LoaderBase):
 
         return io_utils.load_image(self._image_paths[index])
 
-    def get_camera_intrinsics_full_res(self, index: int) -> Optional[Cal3_S2]:
+    def get_camera_intrinsics_full_res(self,
+                                       index: int) -> Optional[Cal3Bundler]:
         """Get the camera intrinsics at the given index, valid for a full-resolution image.
 
         Args:
@@ -153,11 +156,14 @@ class MonoSFMLoader(LoaderBase):
         """
         if not self._use_gt_intrinsics:
             # get intrinsics from exif
-            intrinsics = io_utils.load_image(self._image_paths[index]).get_intrinsics()
+            intrinsics = io_utils.load_image(
+                self._image_paths[index]).get_intrinsics()
         else:
-            intrinsics = Cal3_S2(
+            intrinsics = Cal3Bundler(
                 fx=self._K[0, 0],
-                fy=self._K[1, 1]
+                fy=self._K[1, 1],
+                k1=0,
+                k2=0,
                 u0=self._K[0, 2],
                 v0=self._K[1, 2],
             )
@@ -188,8 +194,8 @@ class MonoSFMLoader(LoaderBase):
         Returns:
             validation result.
         """
-        return super().is_valid_pair(idx1, idx2) and abs(idx1 - idx2) <= self._max_frame_lookahead
-
+        return super().is_valid_pair(
+            idx1, idx2) and abs(idx1 - idx2) <= self._max_frame_lookahead
 
     def load_gt_intrinsics(self) -> bool:
         ret = False

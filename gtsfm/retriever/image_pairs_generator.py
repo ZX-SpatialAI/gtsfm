@@ -10,7 +10,6 @@ import numpy as np
 from dask.distributed import Client, Future
 
 from gtsfm.common.image import Image
-from gtsfm.frontend.global_descriptor import DinoSaladGlobalDescriptor
 from gtsfm.frontend.global_descriptor.global_descriptor_base import GlobalDescriptorBase
 from gtsfm.retriever.retriever_base import RetrieverBase
 
@@ -44,7 +43,7 @@ class ImagePairsGenerator:
 
         descriptors: Optional[List[np.ndarray]] = None
         if self._global_descriptor is not None:
-            if isinstance(self._global_descriptor, DinoSaladGlobalDescriptor):
+            if self._global_descriptor.batch_process:
                 descriptors = list(
                     self._global_descriptor.describe(image_fnames))
             else:

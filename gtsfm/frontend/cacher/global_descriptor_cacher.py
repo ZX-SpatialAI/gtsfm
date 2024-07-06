@@ -3,7 +3,7 @@
 This class provides the caching functionality to a GTSFM global descriptor. To use this cacher, initialize it with
 the global descriptor you want to apply the cache on.
 
-Example: To cache output of `NetVLADGlobalDescriptor`, use 
+Example: To cache output of `NetVLADGlobalDescriptor`, use
 `GlobalDescriptorCacher(global_descriptor_obj=NetVLADGlobalDescriptor())`.
 
 Authors: John Lambert
@@ -21,7 +21,8 @@ from gtsfm.frontend.global_descriptor.global_descriptor_base import GlobalDescri
 
 logger = logger_utils.get_logger()
 
-CACHE_ROOT_PATH = Path(__file__).resolve().parent.parent.parent.parent / "cache"
+CACHE_ROOT_PATH = Path(
+    __file__).resolve().parent.parent.parent.parent / "cache"
 
 
 class GlobalDescriptorCacher(GlobalDescriptorBase):
@@ -33,13 +34,16 @@ class GlobalDescriptorCacher(GlobalDescriptorBase):
         Args:
             global_descriptor_obj: global_descriptor to use in case of cache miss.
         """
+        super().__init__()
         self._global_descriptor = global_descriptor_obj
         # TODO(johnwlambert): make the obj cache key dependent on the code
-        self._global_descriptor_obj_cache_key = type(self._global_descriptor).__name__
+        self._global_descriptor_obj_cache_key = type(
+            self._global_descriptor).__name__
 
     def __get_cache_path(self, cache_key: str) -> Path:
         """Gets the file path to the cache bz2 file from the cache key."""
-        return CACHE_ROOT_PATH / "global_descriptor" / "{}.pbz2".format(cache_key)
+        return CACHE_ROOT_PATH / "global_descriptor" / "{}.pbz2".format(
+            cache_key)
 
     def __generate_cache_key(self, image: Image) -> str:
         """Generates the cache key from the input image and underlying global descriptor."""
@@ -49,15 +53,18 @@ class GlobalDescriptorCacher(GlobalDescriptorBase):
 
     def __load_result_from_cache(self, image: Image) -> Optional[np.ndarray]:
         """Load cached result, if they exist."""
-        cache_path = self.__get_cache_path(cache_key=self.__generate_cache_key(image=image))
+        cache_path = self.__get_cache_path(cache_key=self.__generate_cache_key(
+            image=image))
         cached_data = io_utils.read_from_bz2_file(cache_path)
         if cached_data is None:
             return None
         return cached_data["global_descriptor"]
 
-    def __save_result_to_cache(self, image: Image, global_descriptor: np.ndarray) -> None:
+    def __save_result_to_cache(self, image: Image,
+                               global_descriptor: np.ndarray) -> None:
         """Save the results to the cache."""
-        cache_path = self.__get_cache_path(cache_key=self.__generate_cache_key(image=image))
+        cache_path = self.__get_cache_path(cache_key=self.__generate_cache_key(
+            image=image))
         data = {"global_descriptor": global_descriptor}
         io_utils.write_to_bz2_file(data, cache_path)
 
